@@ -1,16 +1,15 @@
 package org.cyka.client;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.FutureListener;
+import io.netty.handler.codec.http.*;
+import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.cyka.pool.ClientConnectionPool;
 
@@ -22,7 +21,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class NettyHttpClient {
 
   private static final Bootstrap bootstrap = new Bootstrap();
-  private static final EventLoopGroup GROUP = new DefaultEventLoopGroup();
+  private static final EventLoopGroup GROUP = new NioEventLoopGroup();
   private static ChannelPoolMap<InetSocketAddress, ChannelPool> channelPoolMap;
 
   private InetSocketAddress targetServer;
@@ -39,20 +38,24 @@ public class NettyHttpClient {
     return this;
   }
 
-  public void sendStringMsg(String msg) throws InterruptedException {
+  public void sendMsg(String uri) {
     ChannelPool pool = channelPoolMap.get(targetServer);
-    pool.acquire()
-        .sync()
-        .addListener(
-            (FutureListener<Channel>)
-                future -> {
-                  if (future.isSuccess()) {
-                    Channel channel = future.getNow();
-//                    DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET,new URI());
-                    channel.writeAndFlush(Unpooled.copiedBuffer(msg, Charsets.UTF_8));
-                    pool.release(channel);
-                  }
-                });
+    try {
+      Future<Channel> future = pool.acquire().sync();
+      if (future.isSuccess()) {
+        Channel channel = future.getNow();
+        log.info("channel id : {}", channel.id());
+        DefaultFullHttpRequest request =
+            new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri);
+        request.headers().set(HttpHeaderNames.HOST, "localhost");
+        request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+        request.headers().set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP);
+        channel.writeAndFlush(request);
+        pool.release(channel);
+      }
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   public NettyHttpClient() {

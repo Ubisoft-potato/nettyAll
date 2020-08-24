@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
@@ -29,9 +30,10 @@ public class ClientChannelInitializer implements ChannelPoolHandler {
     channel.config().setKeepAlive(true);
     channel.config().setTcpNoDelay(true);
     ch.pipeline()
-        .addLast(new IdleStateHandler(0, 0, 5, TimeUnit.SECONDS))
         .addLast(new LoggingHandler(LogLevel.DEBUG))
-        .addLast("httpClientCodec", new HttpClientCodec())
+        .addLast(new IdleStateHandler(0, 0, 5, TimeUnit.SECONDS))
+        .addLast(new HttpClientCodec())
+        .addLast(new HttpObjectAggregator(65536))
         .addLast(new ChunkedWriteHandler())
         .addLast(new ClientMessageHandler());
   }
