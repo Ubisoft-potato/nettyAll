@@ -8,8 +8,18 @@
     <artifactId>nettyAll</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+    </properties>
+
     <modules>
         <module>http-client</module>
+        <module>rpc-server</module>
+        <module>rpc-client</module>
+        <module>rpc-common</module>
     </modules>
 
     <dependencies>
