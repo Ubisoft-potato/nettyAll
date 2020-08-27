@@ -38,7 +38,7 @@ public class EtcdServiceRegistry implements ServiceRegistry {
   // 注册中心地址
   private static final String DEFAULT_ADDRESS = "http://127.0.0.1:2379";
   // 租期
-  private static int LeaseTTL = 60;
+  private static final int LeaseTTL = 60;
   // Guava string splitter
   private final Splitter splitter = Splitter.on(':');
 
@@ -151,17 +151,21 @@ public class EtcdServiceRegistry implements ServiceRegistry {
   }
 
   public EtcdServiceRegistry() {
-    this(DEFAULT_ADDRESS);
+    this(DEFAULT_ADDRESS,LeaseTTL);
   }
 
   public EtcdServiceRegistry(String registryAddress) {
+    this(registryAddress, LeaseTTL);
+  }
+
+  public EtcdServiceRegistry(String registryAddress, int leaseTTL) {
     registryAddress = registryAddress != null ? registryAddress : DEFAULT_ADDRESS;
     // build etcd client
     this.client = Client.builder().endpoints(registryAddress).build();
     this.kv = client.getKVClient();
     this.lease = client.getLeaseClient();
     try {
-      this.leaseId = lease.grant(LeaseTTL).get().getID();
+      this.leaseId = lease.grant(leaseTTL).get().getID();
     } catch (InterruptedException | ExecutionException e) {
       log.error(e.getLocalizedMessage());
       e.printStackTrace();
