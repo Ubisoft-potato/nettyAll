@@ -11,5 +11,11 @@
 
     <artifactId>rpc-client</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>org.cyka</groupId>
+            <artifactId>rpc-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

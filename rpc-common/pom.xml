@@ -10,22 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rpc-common</artifactId>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>6</source>
-                    <target>6</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-    <properties>
-        <kryo.version>4.0.2</kryo.version>
-    </properties>
 
     <dependencies>
         <!-- kryo -->
@@ -34,6 +18,14 @@
             <artifactId>kryo</artifactId>
             <version>${kryo.version}</version>
         </dependency>
+
+        <!-- jectd  -->
+        <dependency>
+            <groupId>io.etcd</groupId>
+            <artifactId>jetcd-core</artifactId>
+            <version>0.5.3</version>
+        </dependency>
+
     </dependencies>
 
 </project>
