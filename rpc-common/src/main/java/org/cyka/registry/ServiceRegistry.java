@@ -1,8 +1,6 @@
 package org.cyka.registry;
 
-import org.cyka.registry.lb.LoadBalanceStrategy;
-
-import java.util.List;
+import java.util.Set;
 
 public interface ServiceRegistry {
 
@@ -29,15 +27,14 @@ public interface ServiceRegistry {
    * @param serviceName
    * @return
    */
-  List<ServiceEndpoint> getServiceEndpoints(String serviceName);
+  Set<ServiceEndpoint> getServiceEndpoints(String serviceName);
 
   /**
-   * choose a service endpoint by specific lb strategy
+   * watch on service's change, for example: service offline and host change
    *
-   * @param serviceName
-   * @return
+   * @param serviceNames
    */
-  ServiceEndpoint choose(String serviceName, LoadBalanceStrategy strategy);
+  void watchServicesChange(Iterable<String> serviceNames);
 
   /** when stop supply service , call this method to make current service offline */
   void disconnect();

@@ -3,28 +3,28 @@ package org.cyka.registry.etcd;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import io.etcd.jetcd.ByteSequence;
-import io.etcd.jetcd.Client;
-import io.etcd.jetcd.KV;
-import io.etcd.jetcd.Lease;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import io.etcd.jetcd.*;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
-import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.support.CloseableClient;
+import io.etcd.jetcd.watch.WatchEvent;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.cyka.registry.ServiceEndpoint;
 import org.cyka.registry.ServiceRegistry;
-import org.cyka.registry.lb.LoadBalanceStrategy;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -32,17 +32,18 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Slf4j
 public class EtcdServiceRegistry implements ServiceRegistry {
 
-  // ---------------------------constant------------------------------------------------
+  // ---------------------------constant-----------------------------------------
   // 跟路径
   private static final String ROOTPATH = "cykaRpc";
   // 注册中心地址
   private static final String DEFAULT_ADDRESS = "http://127.0.0.1:2379";
   // 租期
   private static final int LeaseTTL = 60;
+  private final String SLASH = "/";
   // Guava string splitter
-  private final Splitter splitter = Splitter.on(':');
+  private final Splitter semicolonSplitter = Splitter.on(':');
 
-  // ----------------------------etcd---------------------------------------------
+  // ----------------------------etcd--------------------------------------------
   // 租赁id
   private Long leaseId;
   // etcd  kv client
@@ -51,6 +52,11 @@ public class EtcdServiceRegistry implements ServiceRegistry {
   private final Lease lease;
   private final Client client;
   private CloseableClient keepAliveClient;
+  private final Watch watch;
+
+  // ----------------------------service map-------------------------------------
+  private final ConcurrentMap<String, Set<ServiceEndpoint>> serviceEndpointMap =
+      Maps.newConcurrentMap();
 
   @Override
   public void register(String serviceName, Integer port) {
@@ -75,32 +81,43 @@ public class EtcdServiceRegistry implements ServiceRegistry {
   }
 
   @Override
-  public List<ServiceEndpoint> getServiceEndpoints(String serviceName) {
+  public Set<ServiceEndpoint> getServiceEndpoints(String serviceName) {
     checkArgument(!Strings.isNullOrEmpty(serviceName), "serviceName is null or empty");
-    String strKey = MessageFormat.format("/{0}/{1}", ROOTPATH, serviceName);
-    ByteSequence key = ByteSequence.from(strKey, Charsets.UTF_8);
-    try {
-      return kv.get(key, GetOption.newBuilder().withPrefix(key).build()).get().getKvs().stream()
-          .map(
-              keyValue -> {
-                String serviceKey = keyValue.getKey().toString(Charsets.UTF_8);
-                int index = serviceKey.lastIndexOf("/");
-                String serviceUri = serviceKey.substring(index + 1);
-                List<String> hostAndPort = splitter.splitToList(serviceUri);
-                return new ServiceEndpoint(hostAndPort.get(0), Integer.valueOf(hostAndPort.get(1)));
-              })
-          .collect(Collectors.toList());
-    } catch (InterruptedException e) {
-      log.warn("find service: {}, has bean interrupt: {}", serviceName, e.getMessage());
-    } catch (ExecutionException e) {
-      log.warn("find service:{} , fail : {}", serviceName, e.getMessage());
-    }
-    return Lists.newArrayList();
+    return this.serviceEndpointMap.get(serviceName);
   }
 
   @Override
-  public ServiceEndpoint choose(String serviceName, LoadBalanceStrategy strategy) {
-    return null;
+  public void watchServicesChange(Iterable<String> serviceNames) {
+    serviceNames.forEach(
+        serviceName -> {
+          String strKey = MessageFormat.format("/{0}/{1}", ROOTPATH, serviceName);
+          ByteSequence serviceNameSequence = ByteSequence.from(strKey, Charsets.UTF_8);
+          WatchOption watchOption =
+              WatchOption.newBuilder().withPrefix(serviceNameSequence).build();
+          watch.watch(
+              serviceNameSequence,
+              watchOption,
+              watchResponse ->
+                  watchResponse
+                      .getEvents()
+                      .forEach(
+                          watchEvent -> {
+                            switch (watchEvent.getEventType()) {
+                              case PUT:
+                                handlePutEvent(watchEvent, serviceName);
+                                break;
+                              case DELETE:
+                                handleDeleteEvent(watchEvent, serviceName);
+                                break;
+                              case UNRECOGNIZED:
+                                log.warn(
+                                    "unrecognized event, service endpoint: {}",
+                                    getServiceEndpointFromKeyValue(watchEvent.getKeyValue()));
+                                break;
+                            }
+                          }),
+              throwable -> log.warn("watch error occur: {}", throwable.getMessage()));
+        });
   }
 
   @Override
@@ -111,6 +128,7 @@ public class EtcdServiceRegistry implements ServiceRegistry {
     }
   }
 
+  // ----------------------------private method-------------------------------------
   /**
    * get local Ip Address : it may be local area network ip (not the public ip)
    *
@@ -123,6 +141,50 @@ public class EtcdServiceRegistry implements ServiceRegistry {
       log.warn("cannot get the local host ip , using localhost as service ip");
     }
     return "127.0.0.1";
+  }
+
+  private void handlePutEvent(WatchEvent watchEvent, String serviceName) {
+    ServiceEndpoint serviceEndpoint = getServiceEndpointFromKeyValue(watchEvent.getKeyValue());
+    if (!serviceEndpointMap.containsKey(serviceName)) {
+      CopyOnWriteArraySet<ServiceEndpoint> endpointSet = Sets.newCopyOnWriteArraySet();
+      endpointSet.add(serviceEndpoint);
+      serviceEndpointMap.put(serviceName, endpointSet);
+      log.debug(
+          "service: {}'s first endpoint had been added, service endpoint : {}",
+          serviceName,
+          serviceEndpoint);
+    } else {
+      log.debug(
+          "service: {}'s endpoint had been added, service endpoint: {} ",
+          serviceName,
+          serviceEndpoint);
+      serviceEndpointMap.get(serviceName).add(serviceEndpoint);
+    }
+  }
+
+  private void handleDeleteEvent(WatchEvent watchEvent, String serviceName) {
+    ServiceEndpoint serviceEndpoint = getServiceEndpointFromKeyValue(watchEvent.getKeyValue());
+    serviceEndpointMap.computeIfPresent(
+        serviceName,
+        (key, oldValue) -> {
+          boolean removed = oldValue.remove(serviceEndpoint);
+          if (removed)
+            log.debug(
+                "service: {}'s endpoint: {} had been removed , the last service endpoint list:{} ",
+                key,
+                serviceEndpoint,
+                oldValue);
+          return oldValue;
+        });
+  }
+
+  private ServiceEndpoint getServiceEndpointFromKeyValue(KeyValue keyValue) {
+    String serviceKey = keyValue.getKey().toString(Charsets.UTF_8);
+    log.debug("etcd service key: {}", serviceKey);
+    int index = serviceKey.lastIndexOf(SLASH);
+    String serviceUri = serviceKey.substring(index + 1);
+    List<String> hostAndPort = semicolonSplitter.splitToList(serviceUri);
+    return new ServiceEndpoint(hostAndPort.get(0), Integer.valueOf(hostAndPort.get(1)));
   }
 
   private void keepAliveWithEtcd() {
@@ -150,11 +212,13 @@ public class EtcdServiceRegistry implements ServiceRegistry {
             });
   }
 
+  // -----------------------constructor---------------------------------------
+
   public EtcdServiceRegistry() {
-    this(DEFAULT_ADDRESS,LeaseTTL);
+    this(DEFAULT_ADDRESS, LeaseTTL);
   }
 
-  public EtcdServiceRegistry(String registryAddress) {
+  private EtcdServiceRegistry(String registryAddress) {
     this(registryAddress, LeaseTTL);
   }
 
@@ -164,6 +228,7 @@ public class EtcdServiceRegistry implements ServiceRegistry {
     this.client = Client.builder().endpoints(registryAddress).build();
     this.kv = client.getKVClient();
     this.lease = client.getLeaseClient();
+    this.watch = client.getWatchClient();
     try {
       this.leaseId = lease.grant(leaseTTL).get().getID();
     } catch (InterruptedException | ExecutionException e) {
