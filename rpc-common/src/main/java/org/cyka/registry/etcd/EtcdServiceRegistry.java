@@ -154,11 +154,14 @@ public class EtcdServiceRegistry implements ServiceRegistry {
           serviceName,
           serviceEndpoint);
     } else {
-      log.debug(
-          "service: {}'s endpoint had been added, service endpoint: {} ",
-          serviceName,
-          serviceEndpoint);
-      serviceEndpointMap.get(serviceName).add(serviceEndpoint);
+
+      boolean add = serviceEndpointMap.get(serviceName).add(serviceEndpoint);
+      if (add) {
+        log.debug(
+            "service: {}'s endpoint had been added, service endpoint: {} ",
+            serviceName,
+            serviceEndpoint);
+      }
     }
   }
 

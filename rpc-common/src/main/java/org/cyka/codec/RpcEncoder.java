@@ -11,15 +11,17 @@ import org.cyka.serializer.RpcSerializer;
 public class RpcEncoder extends MessageToByteEncoder<RpcRequest> {
 
   private final RpcSerializer serializer;
+  private final Class<?> clazz;
 
   @Override
   protected void encode(ChannelHandlerContext ctx, RpcRequest msg, ByteBuf out) throws Exception {
     byte[] requestData = serializer.serialize(msg);
-    out.writeInt(requestData.length);  // 不定长数据包
+    out.writeInt(requestData.length); // 不定长数据包
     out.writeBytes(requestData);
   }
 
-  public RpcEncoder(RpcSerializer serializer) {
+  public RpcEncoder(RpcSerializer serializer,Class<?> clazz) {
     this.serializer = serializer;
+    this.clazz = clazz;
   }
 }
