@@ -16,6 +16,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <kryo.version>4.0.2</kryo.version>
+        <reflections.vertion>0.9.12</reflections.vertion>
     </properties>
 
     <modules>
