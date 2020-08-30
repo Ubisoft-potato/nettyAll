@@ -1,4 +1,3 @@
 package org.cyka.client;
 
-public class NettyRpcClient {
-}
+public class NettyRpcClient {}
