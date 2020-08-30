@@ -9,4 +9,9 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
   @Override
   protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse)
       throws Exception {}
+
+  @Override
+  public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+
+  }
 }
