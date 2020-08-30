@@ -2,9 +2,11 @@ package org.cyka.protocol;
 
 import lombok.Data;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 @Data
 @ToString
+@Accessors(chain = true)
 public class RpcRequest {
   /** 请求对象的ID */
   private String requestId;
@@ -16,4 +18,8 @@ public class RpcRequest {
   private Class<?>[] parameterTypes;
   /** 入参 */
   private Object[] parameters;
+
+  /** heart beat package */
+  public static final RpcRequest HEART_BEAT_REQUEST =
+      new RpcRequest().setRequestId("HEART_BEAT_REQUEST");
 }

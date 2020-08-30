@@ -2,10 +2,7 @@ package org.cyka.pool;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.pool.AbstractChannelPoolMap;
-import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.ChannelPoolMap;
-import io.netty.channel.pool.FixedChannelPool;
+import io.netty.channel.pool.*;
 import io.netty.util.concurrent.FutureListener;
 import lombok.extern.slf4j.Slf4j;
 import org.cyka.async.AsyncCallback;
@@ -23,6 +20,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class NettyBasedConnectionPool implements RpcClientConnectionPool {
 
   private final ChannelPoolMap<ServiceEndpoint, ChannelPool> poolMap;
+
+  private final long DEFAULT_ALL_IDLE_TIME = 60L;
 
   @Override
   public AsyncResult<Channel> acquireChannel(ServiceEndpoint serviceEndpoint) {
@@ -84,19 +83,106 @@ public class NettyBasedConnectionPool implements RpcClientConnectionPool {
     return result;
   }
 
-  public NettyBasedConnectionPool(Bootstrap b, int poolSize) {
+  private NettyBasedConnectionPool(Builder builder) {
+    this(
+        builder.b,
+        builder.channelIdleTime,
+        builder.poolSize,
+        builder.acquireTimeOutMills,
+        builder.maxPendingAcquires,
+        builder.useLIFO,
+        builder.checker);
+  }
+
+  /**
+   * the constructor of netty based connection pool
+   *
+   * @param b bootstrap
+   * @param channelIdleTime channel idle time ,if reach ,will send a heart beat package
+   * @param poolSize pool's max size
+   * @param acquireTimeOutMills the max time (in milliseconds) the caller to wait
+   * @param maxPendingAcquires the number of pending acquires
+   * @param useLIFO whether to use LIFO , else to use FIFO
+   * @param checker the health checker, must implement <code>ChannelHealthChecker</code>
+   */
+  private NettyBasedConnectionPool(
+      Bootstrap b,
+      long channelIdleTime,
+      int poolSize,
+      int acquireTimeOutMills,
+      int maxPendingAcquires,
+      boolean useLIFO,
+      ChannelHealthChecker checker) {
     checkNotNull(b);
     checkArgument(poolSize > 0);
+    checkArgument(acquireTimeOutMills > 0);
+    checkArgument(maxPendingAcquires > 0);
     this.poolMap =
         new AbstractChannelPoolMap<ServiceEndpoint, ChannelPool>() {
           @Override
           protected ChannelPool newPool(ServiceEndpoint serviceEndpoint) {
             log.debug("make a new connectionPool for service endpoint : {}", serviceEndpoint);
-            InetSocketAddress remoteAddress =
-                new InetSocketAddress(serviceEndpoint.getHost(), serviceEndpoint.getPort());
             return new FixedChannelPool(
-                b.remoteAddress(remoteAddress), new RpcChannelInitializer(60L), poolSize);
+                b.remoteAddress(
+                    new InetSocketAddress(serviceEndpoint.getHost(), serviceEndpoint.getPort())),
+                new RpcChannelInitializer(channelIdleTime),
+                checker != null ? checker : ChannelHealthChecker.ACTIVE,
+                FixedChannelPool.AcquireTimeoutAction.NEW,
+                acquireTimeOutMills,
+                poolSize,
+                maxPendingAcquires,
+                true,
+                useLIFO);
           }
         };
+  }
+
+  static class Builder {
+    private Bootstrap b;
+    private int poolSize;
+    private int acquireTimeOutMills;
+    private int maxPendingAcquires;
+    private boolean useLIFO;
+    private ChannelHealthChecker checker;
+    private long channelIdleTime;
+
+    public Builder bootstrap(Bootstrap b) {
+      this.b = b;
+      return this;
+    }
+
+    public Builder poolSize(int poolSize) {
+      this.poolSize = poolSize;
+      return this;
+    }
+
+    public Builder acquireTimeOutMills(int acquireTimeOutMills) {
+      this.acquireTimeOutMills = acquireTimeOutMills;
+      return this;
+    }
+
+    public Builder maxPendingAcquires(int maxPendingAcquires) {
+      this.maxPendingAcquires = maxPendingAcquires;
+      return this;
+    }
+
+    public Builder useLIFO(boolean useLIFO) {
+      this.useLIFO = useLIFO;
+      return this;
+    }
+
+    public Builder checker(ChannelHealthChecker checker) {
+      this.checker = checker;
+      return this;
+    }
+
+    public Builder channelIdleTime(long channelIdleTime) {
+      this.channelIdleTime = channelIdleTime;
+      return this;
+    }
+
+    public NettyBasedConnectionPool build() {
+      return new NettyBasedConnectionPool(this);
+    }
   }
 }

@@ -43,7 +43,7 @@ public class PooledAsyncExecutor implements AsyncExecutor {
             Runtime.getRuntime().availableProcessors(),
             0,
             TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(512),
+            new LinkedBlockingQueue<>(512),
             new ThreadPoolExecutor.CallerRunsPolicy());
   }
 
@@ -55,7 +55,7 @@ public class PooledAsyncExecutor implements AsyncExecutor {
             maxPoolSize,
             0,
             TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(taskQueueSize),
+            new LinkedBlockingQueue<>(taskQueueSize),
             new ThreadPoolExecutor.CallerRunsPolicy());
   }
 }
