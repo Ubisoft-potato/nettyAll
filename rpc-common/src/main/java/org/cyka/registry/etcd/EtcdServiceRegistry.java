@@ -1,7 +1,6 @@
 package org.cyka.registry.etcd;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
@@ -33,9 +32,6 @@ public class EtcdServiceRegistry implements ServiceRegistry {
   private static final String DEFAULT_ADDRESS = "http://127.0.0.1:2379";
   // 租期
   private static final int LeaseTTL = 60;
-  private final String SLASH = "/";
-  // Guava string splitter
-  private final Splitter semicolonSplitter = Splitter.on(':');
 
   // ----------------------------etcd--------------------------------------------
   // 租赁id
