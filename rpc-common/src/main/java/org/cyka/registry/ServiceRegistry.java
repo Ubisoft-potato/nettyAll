@@ -7,17 +7,17 @@ public interface ServiceRegistry {
   /**
    * register a service to etcd with user define ipAddress
    *
-   * @param serviceName
-   * @param ipAddress
-   * @param port
+   * @param serviceName service name
+   * @param ipAddress ip address
+   * @param port service port
    */
   void register(String serviceName, String ipAddress, Integer port);
 
   /**
    * register a service to etcd , using localAddress
    *
-   * @param serviceName
-   * @param port
+   * @param serviceName service name
+   * @param port service port
    */
   void register(String serviceName, Integer port);
 
@@ -25,14 +25,14 @@ public interface ServiceRegistry {
    * get all service available endpoint
    *
    * @param serviceName
-   * @return
+   * @return service endpoints
    */
   Set<ServiceEndpoint> getServiceEndpoints(String serviceName);
 
   /**
    * watch on service's change, for example: service offline and host change
    *
-   * @param serviceNames
+   * @param serviceNames services to be watch
    */
   void watchServicesChange(Iterable<String> serviceNames);
 

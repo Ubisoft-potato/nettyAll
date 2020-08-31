@@ -137,7 +137,7 @@ public class NettyBasedConnectionPool implements RpcClientConnectionPool {
         };
   }
 
-  static class Builder {
+  public static class Builder {
     private Bootstrap b;
     private int poolSize;
     private int acquireTimeOutMills;

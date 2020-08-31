@@ -14,7 +14,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
-public class LocalAddressTest {
+public class ServiceRegistryTest {
 
   private final String serviceName = "testService";
   private final ServiceRegistry serviceRegistry = new EtcdServiceRegistry();

@@ -12,6 +12,8 @@ public class RpcRequest {
   private String requestId;
   /** 类名 */
   private String className;
+  /** 版本 */
+  private String version;
   /** 方法名 */
   private String methodName;
   /** 参数类型 */
