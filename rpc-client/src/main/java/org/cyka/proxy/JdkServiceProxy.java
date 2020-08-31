@@ -3,12 +3,16 @@ package org.cyka.proxy;
 import lombok.extern.slf4j.Slf4j;
 import org.cyka.annotation.AnnotationProcessor;
 import org.cyka.annotation.RpcCaller;
+import org.cyka.pool.RpcClientConnectionPool;
 import org.cyka.protocol.RpcRequest;
+import org.cyka.registry.ServiceRegistry;
+import org.cyka.registry.etcd.EtcdServiceRegistry;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,6 +20,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 @Slf4j
 public class JdkServiceProxy implements ServiceProxy {
+
+  private final RpcClientConnectionPool connectionPool;
+  private final ServiceRegistry serviceRegistry;
 
   @Override
   public ServiceProxy servicePackageScan(String basePackage) {
@@ -27,18 +34,20 @@ public class JdkServiceProxy implements ServiceProxy {
 
   @Override
   public ServiceProxy generateServiceProxy(Collection<Class<?>> callerServiceClasses) {
-    for (Class<?> callerClass : callerServiceClasses) {
-      RpcCaller callerClassAnnotation = callerClass.getAnnotation(RpcCaller.class);
-      checkNotNull(callerClassAnnotation, "this is not a @RpcCaller marker interface");
-      String serviceName = callerClassAnnotation.serviceName();
-      String version = callerClassAnnotation.version();
-      Object instance =
-          Proxy.newProxyInstance(
-              callerClass.getClassLoader(),
-              new Class<?>[] {callerClass},
-              new serviceProxyHandler(serviceName, version));
-      log.debug("generate new instance for service class : {}", callerClass);
-      serviceProxyMap.put(callerClass, instance);
+    if (Objects.nonNull(callerServiceClasses) && !callerServiceClasses.isEmpty()) {
+      for (Class<?> callerClass : callerServiceClasses) {
+        RpcCaller callerClassAnnotation = callerClass.getAnnotation(RpcCaller.class);
+        checkNotNull(callerClassAnnotation, "this is not a @RpcCaller marker interface");
+        String serviceName = callerClassAnnotation.serviceName();
+        String version = callerClassAnnotation.version();
+        Object instance =
+            Proxy.newProxyInstance(
+                callerClass.getClassLoader(),
+                new Class<?>[] {callerClass},
+                new serviceProxyHandler(serviceName, version));
+        log.debug("generate new instance for service class : {}", callerClass);
+        serviceProxyMap.put(callerClass, instance);
+      }
     }
     return this;
   }
@@ -49,7 +58,12 @@ public class JdkServiceProxy implements ServiceProxy {
     return serviceProxyMap.getInstance(clazz);
   }
 
-  static class serviceProxyHandler implements InvocationHandler {
+  public JdkServiceProxy(RpcClientConnectionPool connectionPool) {
+    this.connectionPool = connectionPool;
+    this.serviceRegistry = new EtcdServiceRegistry();
+  }
+
+  class serviceProxyHandler implements InvocationHandler {
     private final String serviceName;
     private final String version;
 

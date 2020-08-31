@@ -11,7 +11,7 @@ public class ServiceProxyTest {
 
   @Test
   public void jdkProxyTest() {
-    ServiceProxy serviceProxy = new JdkServiceProxy().servicePackageScan("org.cyka");
+    ServiceProxy serviceProxy = new JdkServiceProxy(null).servicePackageScan("org.cyka");
     log.info(
         "generated service object: {}", serviceProxy.getInstance(HelloService.class).toString());
   }

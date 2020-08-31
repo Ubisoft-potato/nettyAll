@@ -2,7 +2,9 @@ package org.cyka;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.cyka.registry.DiscoveryClient;
 import org.cyka.registry.ServiceRegistry;
+import org.cyka.registry.etcd.EtcdDiscoveryClient;
 import org.cyka.registry.etcd.EtcdServiceRegistry;
 import org.cyka.registry.lb.RoundRobinLoadBalanceStrategy;
 import org.cyka.registry.lb.RpcLoadBalance;
@@ -18,7 +20,8 @@ public class ServiceRegistryTest {
 
   private final String serviceName = "testService";
   private final ServiceRegistry serviceRegistry = new EtcdServiceRegistry();
-  private final RpcLoadBalance loadBalance = new RpcLoadBalance(serviceRegistry);
+  private final DiscoveryClient discoveryClient = new EtcdDiscoveryClient();
+  private final RpcLoadBalance loadBalance = new RpcLoadBalance(discoveryClient);
 
   @Test
   public void getLocalAddress() throws UnknownHostException {
@@ -29,18 +32,20 @@ public class ServiceRegistryTest {
   public void serviceRegisterAndGetTest() throws InterruptedException {
     registerAndWatchServices();
     Thread.sleep(100);
-    log.info("service endpoint list: {}", serviceRegistry.getServiceEndpoints(serviceName));
+    log.info("service endpoint list: {}", discoveryClient.getServiceEndpoints(serviceName));
     serviceRegistry.disconnect();
+    discoveryClient.disconnect();
   }
 
   @Test
   public void serviceWatchTest() {
-    serviceRegistry.watchServicesChange(Lists.newArrayList(serviceName));
+    discoveryClient.watchServicesChange(Lists.newArrayList(serviceName));
     Runtime.getRuntime()
         .addShutdownHook(
             new Thread(
                 () -> {
                   serviceRegistry.disconnect();
+                  discoveryClient.disconnect();
                   System.exit(1);
                 }));
     LockSupport.park();
@@ -61,10 +66,11 @@ public class ServiceRegistryTest {
       log.warn(e.getMessage());
     }
     serviceRegistry.disconnect();
+    discoveryClient.disconnect();
   }
 
   private void registerAndWatchServices() {
-    serviceRegistry.watchServicesChange(Lists.newArrayList(serviceName));
+    discoveryClient.watchServicesChange(Lists.newArrayList(serviceName));
     serviceRegistry.register(serviceName, 80);
     serviceRegistry.register(serviceName, 81);
     serviceRegistry.register(serviceName, 82);

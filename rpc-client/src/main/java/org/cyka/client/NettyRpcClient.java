@@ -4,11 +4,13 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.cyka.pool.NettyBasedConnectionPool;
 import org.cyka.pool.RpcClientConnectionPool;
+import org.cyka.proxy.CglibServiceProxy;
+import org.cyka.proxy.JdkServiceProxy;
+import org.cyka.proxy.ServiceProxy;
 
 import java.util.Collection;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NettyRpcClient {
   private final Bootstrap bootstrap = new Bootstrap();
@@ -17,26 +19,30 @@ public class NettyRpcClient {
   // RpcCaller 标注类所在包名
   private final String basePackage;
   private final Collection<Class<?>> callerServiceClasses;
-
-
-
+  private final ServiceProxy serviceProxy;
 
   /**
-   * add service class to generate
+   * query service instance
    *
-   * @param clazz the service class to be add
+   * @param clazz the class to query
+   * @param <T> generic type
+   * @return the instance
    */
-  public void addCallerServiceClass(Class<?> clazz) {
-    callerServiceClasses.add(clazz);
+  public <T> T getServiceCallerInstance(Class<T> clazz) {
+    return serviceProxy.getInstance(clazz);
   }
 
-  public Collection<Class<?>> getCallerServiceClasses() {
-    return callerServiceClasses;
+  /**
+   * check if the service class is been instantiated
+   *
+   * @param clazz the class to query
+   * @return
+   */
+  public boolean isServiceCallerBeInstantiated(Class<?> clazz) {
+    return serviceProxy.getInstance(clazz) != null;
   }
 
   public NettyRpcClient(Builder builder) {
-    checkNotNull(builder.pool);
-    this.connectionPool = builder.pool;
     this.basePackage = builder.basePackage;
     this.callerServiceClasses = builder.callerServiceClasses;
     this.bootstrap
@@ -47,21 +53,40 @@ public class NettyRpcClient {
                     : Runtime.getRuntime().availableProcessors()))
         .channel(NioSocketChannel.class)
         .option(ChannelOption.SO_KEEPALIVE, true);
+    this.connectionPool =
+        new NettyBasedConnectionPool.Builder()
+            .bootstrap(bootstrap)
+            .channelIdleTime(60L)
+            .poolSize(20)
+            .useLIFO(true)
+            .maxPendingAcquires(500)
+            .acquireTimeOutMills(6 * 1000)
+            .build();
+    switch (builder.proxyType) {
+      case JDK:
+        this.serviceProxy = new JdkServiceProxy(this.connectionPool);
+        break;
+      case CGLIB:
+        this.serviceProxy = new CglibServiceProxy();
+        break;
+      default:
+        throw new IllegalArgumentException("proxy type unrecognized");
+    }
+    serviceProxy.servicePackageScan(this.basePackage).generateServiceProxy(callerServiceClasses);
   }
 
   public static class Builder {
     private int nThread;
-    private RpcClientConnectionPool pool;
     private String basePackage;
     private Collection<Class<?>> callerServiceClasses;
+    private final ProxyType proxyType;
+
+    public Builder(ProxyType proxyType) {
+      this.proxyType = proxyType;
+    }
 
     public Builder nThread(int nThread) {
       this.nThread = nThread;
-      return this;
-    }
-
-    public Builder pool(RpcClientConnectionPool pool) {
-      this.pool = pool;
       return this;
     }
 
@@ -78,5 +103,10 @@ public class NettyRpcClient {
     public NettyRpcClient build() {
       return new NettyRpcClient(this);
     }
+  }
+
+  enum ProxyType {
+    CGLIB,
+    JDK
   }
 }
