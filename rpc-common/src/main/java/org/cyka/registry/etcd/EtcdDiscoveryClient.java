@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Slf4j
 public class EtcdDiscoveryClient implements DiscoveryClient {
   // ---------------------------constant-----------------------------------------
-  private static final String ROOTPATH = "cykaRpc";
   private final String SLASH = "/";
   // Guava string splitter
   private final Splitter semicolonSplitter = Splitter.on(':');
@@ -48,7 +47,8 @@ public class EtcdDiscoveryClient implements DiscoveryClient {
   public void watchServicesChange(Iterable<String> serviceNames) {
     serviceNames.forEach(
         serviceName -> {
-          String strKey = MessageFormat.format("/{0}/{1}", ROOTPATH, serviceName);
+          String strKey =
+              MessageFormat.format("/{0}/{1}", EtcdClientHolder.getRootpath(), serviceName);
           ByteSequence serviceNameSequence = ByteSequence.from(strKey, Charsets.UTF_8);
           WatchOption watchOption =
               WatchOption.newBuilder().withPrefix(serviceNameSequence).build();

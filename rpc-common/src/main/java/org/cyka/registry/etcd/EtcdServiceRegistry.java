@@ -27,9 +27,6 @@ import java.util.concurrent.ExecutionException;
 public class EtcdServiceRegistry implements ServiceRegistry {
 
   // ---------------------------constant-----------------------------------------
-  // 跟路径
-  private static final String ROOTPATH = "cykaRpc";
-  private static final String DEFAULT_ADDRESS = "http://127.0.0.1:2379";
   // 租期
   private static final int LeaseTTL = 60;
 
@@ -56,7 +53,8 @@ public class EtcdServiceRegistry implements ServiceRegistry {
   public void register(String serviceName, String ipAddress, Integer port) {
     String strKey =
         MessageFormat.format(
-            "/{0}/{1}/{2}:{3}", ROOTPATH, serviceName, ipAddress, String.valueOf(port));
+            "/{0}/{1}/{2}:{3}",
+            EtcdClientHolder.getRootpath(), serviceName, ipAddress, String.valueOf(port));
     ByteSequence key = ByteSequence.from(strKey, Charsets.UTF_8);
     ByteSequence val = ByteSequence.from("", Charsets.UTF_8);
     // wait for the future
