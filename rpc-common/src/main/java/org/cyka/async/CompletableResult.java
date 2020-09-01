@@ -46,7 +46,14 @@ public class CompletableResult<T> implements AsyncResult<T> {
     this.value = value;
     this.state = COMPLETED;
     // invoke the call back method if AsyncCallback not empty
-    this.callback.ifPresent(ac -> ac.onComplete(value, Optional.empty()));
+    this.callback.ifPresent(
+        ac -> {
+          try {
+            ac.onComplete(value, Optional.empty());
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        });
     synchronized (lock) {
       lock.notifyAll();
     }
@@ -56,7 +63,14 @@ public class CompletableResult<T> implements AsyncResult<T> {
     this.exception = exception;
     this.state = FAILED;
     // invoke the call back method if AsyncCallback not empty
-    this.callback.ifPresent(ac -> ac.onComplete(null, Optional.of(exception)));
+    this.callback.ifPresent(
+        ac -> {
+          try {
+            ac.onComplete(null, Optional.of(exception));
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        });
     synchronized (lock) {
       lock.notifyAll();
     }

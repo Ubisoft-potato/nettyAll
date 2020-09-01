@@ -4,13 +4,14 @@ import io.etcd.jetcd.Client;
 
 public class EtcdClientHolder {
   private static volatile Client client;
-  // 注册中心地址
   // ---------------------------constant-----------------------------------------
+  // 跟路径
   private static final String ROOTPATH = "cykaRpc";
+  // 注册中心地址
   private static final String DEFAULT_ADDRESS = "http://127.0.0.1:2379";
   private static final Object lock = new Object();
 
-  public static Client createClient(String registryAddress) {
+  public static Client getOrCreateClient(String registryAddress) {
     if (client == null) {
       synchronized (lock) {
         if (client != null) {

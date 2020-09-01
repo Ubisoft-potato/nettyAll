@@ -26,7 +26,7 @@ public class RoundRobinLoadBalanceStrategy extends LoadBalanceStrategy {
         log.debug(
             "service index reach to the  max size: {}, reset the  service index to : 0 ",
             serviceIndex.get());
-        // // TODO: 2020/8/28 update this index after reset
+        // TODO: 2020/8/28 update this index after reset
         return Iterators.get(serviceEndpoints.iterator(), serviceIndex.updateAndGet(operand -> 0));
       }
     }

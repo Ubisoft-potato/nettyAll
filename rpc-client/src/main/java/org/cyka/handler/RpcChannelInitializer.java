@@ -1,5 +1,6 @@
 package org.cyka.handler;
 
+import com.google.common.collect.Maps;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -7,6 +8,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.cyka.codec.RpcDecoder;
 import org.cyka.codec.RpcEncoder;
+import org.cyka.constant.ClientAttribute;
 import org.cyka.protocol.RpcRequest;
 import org.cyka.protocol.RpcResponse;
 import org.cyka.serializer.RpcSerializer;
@@ -32,6 +34,7 @@ public class RpcChannelInitializer implements ChannelPoolHandler {
 
   @Override
   public void channelCreated(Channel channel) throws Exception {
+    channel.attr(ClientAttribute.RESPONSE_CALLBACK_MAP).set(Maps.newConcurrentMap());
     channel
         .pipeline()
         .addLast(new IdleStateHandler(0, 0, allIdleTime, TimeUnit.SECONDS))

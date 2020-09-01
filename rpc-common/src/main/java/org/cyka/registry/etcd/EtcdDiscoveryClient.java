@@ -135,7 +135,7 @@ public class EtcdDiscoveryClient implements DiscoveryClient {
   }
 
   public EtcdDiscoveryClient(String registryAddress) {
-    this.client = EtcdClientHolder.createClient(registryAddress);
+    this.client = EtcdClientHolder.getOrCreateClient(registryAddress);
     this.kv = client.getKVClient();
     this.watch = client.getWatchClient();
   }

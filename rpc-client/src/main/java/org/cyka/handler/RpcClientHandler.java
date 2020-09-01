@@ -4,15 +4,28 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.cyka.async.AsyncResult;
+import org.cyka.constant.ClientAttribute;
 import org.cyka.protocol.RpcRequest;
 import org.cyka.protocol.RpcResponse;
+
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
   @Override
-  protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse)
-      throws Exception {}
+  protected void channelRead0(ChannelHandlerContext ctx, RpcResponse rpcResponse) throws Exception {
+    ConcurrentMap<String, AsyncResult<RpcResponse>> responseMap =
+        ctx.channel().attr(ClientAttribute.RESPONSE_CALLBACK_MAP).get();
+    responseMap.get(rpcResponse.getRequestId()).setValue(rpcResponse);
+    responseMap.remove(rpcResponse.getRequestId());
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    super.exceptionCaught(ctx, cause);
+  }
 
   @Override
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {

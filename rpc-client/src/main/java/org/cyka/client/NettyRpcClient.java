@@ -109,4 +109,8 @@ public class NettyRpcClient {
     CGLIB,
     JDK
   }
+
+  public static Builder builder() {
+    return new Builder(ProxyType.JDK);
+  }
 }

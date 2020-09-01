@@ -126,7 +126,7 @@ public class EtcdServiceRegistry implements ServiceRegistry {
   }
 
   public EtcdServiceRegistry(String registryAddress, int leaseTTL) {
-    this.client = EtcdClientHolder.createClient(registryAddress);
+    this.client = EtcdClientHolder.getOrCreateClient(registryAddress);
     this.kv = client.getKVClient();
     this.lease = client.getLeaseClient();
     try {
