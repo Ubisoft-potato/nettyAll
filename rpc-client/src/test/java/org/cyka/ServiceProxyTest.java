@@ -8,7 +8,6 @@ import org.junit.Test;
 @Slf4j
 public class ServiceProxyTest {
 
-
   @Test
   public void rpcCallTest() {
     NettyRpcClient rpcClient = NettyRpcClient.builder().basePackage("org.cyka").nThread(8).build();

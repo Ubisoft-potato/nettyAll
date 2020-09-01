@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import java.util.Set;
 
-@RpcCaller(serviceName = "myService" ,version = "test")
+@RpcCaller(serviceName = "myService", version = "test")
 @Slf4j
 public class ReflectionTest {
 
