@@ -26,10 +26,10 @@ public class RpcDecoder extends ByteToMessageDecoder {
       in.resetReaderIndex();
       return;
     }
-    byte[] requestData = new byte[dataLength];
-    in.readBytes(requestData);
-    Object rpcRequest = serializer.deserialize(requestData, clazz);
-    out.add(rpcRequest);
+    byte[] decodeObject = new byte[dataLength];
+    in.readBytes(decodeObject);
+    Object data = serializer.deserialize(decodeObject, clazz);
+    out.add(data);
   }
 
   public RpcDecoder(RpcSerializer serializer, Class<?> clazz) {

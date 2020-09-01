@@ -32,7 +32,6 @@ public interface AsyncResult<T> {
    */
   void await() throws InterruptedException;
 
-
   /**
    * Sets the value from successful execution and executes callback if available. Notifies any
    * thread waiting for completion.

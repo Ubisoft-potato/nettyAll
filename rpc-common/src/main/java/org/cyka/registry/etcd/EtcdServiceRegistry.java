@@ -121,7 +121,7 @@ public class EtcdServiceRegistry implements ServiceRegistry {
     this(null, LeaseTTL);
   }
 
-  private EtcdServiceRegistry(String registryAddress) {
+  public EtcdServiceRegistry(String registryAddress) {
     this(registryAddress, LeaseTTL);
   }
 

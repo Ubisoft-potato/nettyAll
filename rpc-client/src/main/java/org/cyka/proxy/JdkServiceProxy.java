@@ -1,12 +1,14 @@
 package org.cyka.proxy;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
 import org.cyka.annotation.AnnotationProcessor;
 import org.cyka.annotation.RpcCaller;
+import org.cyka.annotation.RpcService;
 import org.cyka.async.AsyncResult;
 import org.cyka.async.CompletableResult;
 import org.cyka.constant.ClientAttribute;
@@ -30,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,7 +47,10 @@ public class JdkServiceProxy implements ServiceProxy {
   @Override
   public ServiceProxy servicePackageScan(String basePackage) {
     Set<Class<?>> RpcCallerClasses =
-        new AnnotationProcessor(basePackage).getAllAnnotatedClass(RpcCaller.class);
+        new AnnotationProcessor(basePackage)
+            .getAllAnnotatedClass(RpcCaller.class).stream()
+                .filter(callerClass -> callerClass.getAnnotation(RpcService.class) == null)
+                .collect(Collectors.toSet());
     generateServiceProxy(RpcCallerClasses);
     return this;
   }
@@ -57,6 +63,7 @@ public class JdkServiceProxy implements ServiceProxy {
         checkNotNull(callerClassAnnotation, "this is not a @RpcCaller marker interface");
         String serviceName = callerClassAnnotation.serviceName();
         String version = callerClassAnnotation.version();
+        this.discoveryClient.watchServicesChange(Lists.newArrayList(serviceName));
         Object instance =
             Proxy.newProxyInstance(
                 callerClass.getClassLoader(),
@@ -75,6 +82,7 @@ public class JdkServiceProxy implements ServiceProxy {
     return serviceProxyMap.getInstance(clazz);
   }
 
+  // -----------------------constructor---------------------------------------
   public JdkServiceProxy(RpcClientConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
     // todo: make an option to choose
@@ -154,7 +162,7 @@ public class JdkServiceProxy implements ServiceProxy {
           });
       responseAsyncResult.await();
       RpcResponse response = responseAsyncResult.getValue();
-      if (Strings.isNullOrEmpty(response.getError())) {
+      if (!Strings.isNullOrEmpty(response.getError())) {
         throw new ServiceCallException(response.getError());
       }
       return method.getReturnType().cast(response.getResult());

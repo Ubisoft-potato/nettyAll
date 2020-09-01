@@ -24,6 +24,7 @@
         <module>rpc-server</module>
         <module>rpc-client</module>
         <module>rpc-common</module>
+        <module>test-moudle</module>
     </modules>
 
     <dependencies>

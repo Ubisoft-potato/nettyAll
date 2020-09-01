@@ -70,7 +70,7 @@ public class NettyBasedConnectionPool implements RpcClientConnectionPool {
             (FutureListener<Void>)
                 future -> {
                   if (future.isSuccess()) {
-                    result.setValue(Void.TYPE.newInstance());
+                    result.setValue(null);
                   } else {
                     result.setException(
                         new RuntimeException(

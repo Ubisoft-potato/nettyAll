@@ -6,6 +6,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.etcd.jetcd.*;
+import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -40,7 +43,13 @@ public class EtcdDiscoveryClient implements DiscoveryClient {
   @Override
   public Set<ServiceEndpoint> getServiceEndpoints(String serviceName) {
     checkArgument(!Strings.isNullOrEmpty(serviceName), "serviceName is null or empty");
-    return this.serviceEndpointMap.get(serviceName);
+    Set<ServiceEndpoint> serviceEndpoints = this.serviceEndpointMap.get(serviceName);
+    if (serviceEndpoints == null) {
+      Set<ServiceEndpoint> endpoints = getServicesFromEtcd(serviceName);
+      serviceEndpointMap.put(serviceName, endpoints);
+      return endpoints;
+    }
+    return serviceEndpoints;
   }
 
   @Override
@@ -76,6 +85,29 @@ public class EtcdDiscoveryClient implements DiscoveryClient {
                           }),
               throwable -> log.warn("watch error occur: {}", throwable.getMessage()));
         });
+  }
+
+  private Set<ServiceEndpoint> getServicesFromEtcd(String serviceName) {
+    checkArgument(!Strings.isNullOrEmpty(serviceName), "serviceName is null or empty");
+    String strKey = MessageFormat.format("/{0}/{1}", EtcdClientHolder.getRootpath(), serviceName);
+    ByteSequence key = ByteSequence.from(strKey, Charsets.UTF_8);
+    try {
+      return kv.get(key, GetOption.newBuilder().withPrefix(key).build()).get().getKvs().stream()
+          .map(
+              keyValue -> {
+                String serviceKey = keyValue.getKey().toString(Charsets.UTF_8);
+                int index = serviceKey.lastIndexOf("/");
+                String serviceUri = serviceKey.substring(index + 1);
+                List<String> hostAndPort = semicolonSplitter.splitToList(serviceUri);
+                return new ServiceEndpoint(hostAndPort.get(0), Integer.valueOf(hostAndPort.get(1)));
+              })
+          .collect(Collectors.toSet());
+    } catch (InterruptedException e) {
+      log.warn("find service: {}, has bean interrupt: {}", serviceName, e.getMessage());
+    } catch (ExecutionException e) {
+      log.warn("find service:{} , fail : {}", serviceName, e.getMessage());
+    }
+    return Sets.newHashSet();
   }
 
   private void handlePutEvent(WatchEvent watchEvent, String serviceName) {

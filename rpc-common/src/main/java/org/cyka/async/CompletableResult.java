@@ -58,7 +58,6 @@ public class CompletableResult<T> implements AsyncResult<T> {
       lock.notifyAll();
     }
   }
-
   public void setException(Exception exception) {
     this.exception = exception;
     this.state = FAILED;
