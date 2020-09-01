@@ -12,7 +12,9 @@ public class RpcCallTest {
   public void helloServiceCallTest() {
     NettyRpcClient rpcClient = NettyRpcClient.builder().basePackage("org.cyka").nThread(8).build();
     HelloService helloService = rpcClient.getServiceCallerInstance(HelloService.class);
-    log.info(helloService.sayHello("Rpc"));
-    log.info(helloService.repeat("Rpc").toString());
+    for (int i = 0; i < 100; i++) {
+      log.info(helloService.sayHello("Rpc"));
+      log.info(helloService.repeat("Rpc").toString());
+    }
   }
 }

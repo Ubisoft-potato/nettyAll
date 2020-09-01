@@ -28,14 +28,8 @@ public class RpcServer {
   public void start() {
     try {
       serverBootstrap.bind(serverAddress, serverPort).sync();
-      Runtime.getRuntime()
-          .addShutdownHook(
-              new Thread(
-                  () -> {
-                    stop();
-                    System.exit(0);
-                  },
-                  "server-killer"));
+      // add gracefully shutdown hook
+      Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "server-killer"));
     } catch (InterruptedException e) {
       log.error("Server Start Process has been Interrupted, reason: {}", e.getMessage());
     }

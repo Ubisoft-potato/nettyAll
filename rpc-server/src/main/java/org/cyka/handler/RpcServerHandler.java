@@ -26,6 +26,11 @@ public class RpcServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
   }
 
   @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    super.exceptionCaught(ctx, cause);
+  }
+
+  @Override
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
     super.userEventTriggered(ctx, evt);
   }
