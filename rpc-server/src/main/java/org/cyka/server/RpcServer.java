@@ -49,6 +49,13 @@ public class RpcServer {
 
   private void stop() {
     log.info("Rpc Server Shutting Down........");
+    beanRegistry
+        .getAllRegisteredServiceName()
+        .forEach(
+            serviceName -> {
+              serviceRegistry.unRegister(serviceName, serverAddress, serverPort);
+              log.debug("service : {} been unregistered", serviceName);
+            });
     serviceRegistry.disconnect();
     bossGroup.shutdownGracefully();
     workerGroup.shutdownGracefully();

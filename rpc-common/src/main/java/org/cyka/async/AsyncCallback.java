@@ -4,5 +4,5 @@ import java.util.Optional;
 
 public interface AsyncCallback<T> {
 
-  void onComplete(T value, Optional<Exception> ex) throws Exception;
+  void onComplete(T value, Optional<Exception> ex);
 }

@@ -1,25 +1,22 @@
 package org.cyka.registry.etcd;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.Maps;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
 import io.etcd.jetcd.Lease;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
+import io.etcd.jetcd.options.DeleteOption;
 import io.etcd.jetcd.options.PutOption;
 import io.etcd.jetcd.support.CloseableClient;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.cyka.registry.ServiceEndpoint;
 import org.cyka.registry.ServiceRegistry;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
 /** etcd 键值存储注册中心 */
@@ -39,10 +36,6 @@ public class EtcdServiceRegistry implements ServiceRegistry {
   private final Lease lease;
   private final Client client;
   private CloseableClient keepAliveClient;
-
-  // ----------------------------service map-------------------------------------
-  private final ConcurrentMap<String, Set<ServiceEndpoint>> serviceEndpointMap =
-      Maps.newConcurrentMap();
 
   @Override
   public void register(String serviceName, Integer port) {
@@ -65,6 +58,16 @@ public class EtcdServiceRegistry implements ServiceRegistry {
     } catch (ExecutionException e) {
       log.warn("register fail : {}", e.getMessage());
     }
+  }
+
+  @Override
+  public void unRegister(String serviceName, String ipAddress, Integer port) {
+    String strKey =
+        MessageFormat.format(
+            "/{0}/{1}/{2}:{3}",
+            EtcdClientHolder.getRootpath(), serviceName, ipAddress, String.valueOf(port));
+    ByteSequence key = ByteSequence.from(strKey, Charsets.UTF_8);
+    kv.delete(key, DeleteOption.newBuilder().build());
   }
 
   @Override

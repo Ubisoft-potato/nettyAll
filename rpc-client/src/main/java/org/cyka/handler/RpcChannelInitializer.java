@@ -24,16 +24,17 @@ public class RpcChannelInitializer implements ChannelPoolHandler {
 
   @Override
   public void channelReleased(Channel channel) throws Exception {
-    log.debug("channel: {}  release to the pool...", channel.id());
+    log.debug("channel: {}  release to the pool...", channel);
   }
 
   @Override
   public void channelAcquired(Channel channel) throws Exception {
-    log.debug("channel: {} been acquired", channel.id());
+    log.debug("channel: {} been acquired", channel);
   }
 
   @Override
   public void channelCreated(Channel channel) throws Exception {
+    log.debug("new channel: {} created", channel);
     channel.attr(ClientAttribute.RESPONSE_CALLBACK_MAP).set(Maps.newConcurrentMap());
     channel
         .pipeline()

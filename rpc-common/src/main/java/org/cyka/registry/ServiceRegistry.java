@@ -19,6 +19,15 @@ public interface ServiceRegistry {
    */
   void register(String serviceName, Integer port);
 
+  /**
+   * unRegister service when server shutdown
+   *
+   * @param serviceName service name
+   * @param ipAddress ip address
+   * @param port service port
+   */
+  void unRegister(String serviceName, String ipAddress, Integer port);
+
   /** when stop supply service , call this method to make current service offline */
   void disconnect();
 }

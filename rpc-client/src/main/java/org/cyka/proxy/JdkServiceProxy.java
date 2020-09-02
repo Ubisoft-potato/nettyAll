@@ -2,6 +2,7 @@ package org.cyka.proxy;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -43,15 +44,22 @@ public class JdkServiceProxy implements ServiceProxy {
   private final DiscoveryClient discoveryClient;
   private final RpcLoadBalance rpcLoadBalance;
   private final LoadBalanceStrategy strategy;
+  private final Set<String> serviceNamesToBeWatched = Sets.newHashSet();
 
   @Override
   public ServiceProxy servicePackageScan(String basePackage) {
-    Set<Class<?>> RpcCallerClasses =
+    Set<Class<?>> rpcCallerClasses =
         new AnnotationProcessor(basePackage)
             .getAllAnnotatedClass(RpcCaller.class).stream()
                 .filter(callerClass -> callerClass.getAnnotation(RpcService.class) == null)
                 .collect(Collectors.toSet());
-    generateServiceProxy(RpcCallerClasses);
+    serviceNamesToBeWatched.addAll(
+        rpcCallerClasses.stream()
+            .map(clazz -> clazz.getAnnotation(RpcCaller.class).serviceName())
+            .collect(Collectors.toSet()));
+    log.debug("service names to watch: {}", serviceNamesToBeWatched);
+    discoveryClient.watchServicesChange(serviceNamesToBeWatched);
+    generateServiceProxy(rpcCallerClasses);
     return this;
   }
 
@@ -63,7 +71,10 @@ public class JdkServiceProxy implements ServiceProxy {
         checkNotNull(callerClassAnnotation, "this is not a @RpcCaller marker interface");
         String serviceName = callerClassAnnotation.serviceName();
         String version = callerClassAnnotation.version();
-        this.discoveryClient.watchServicesChange(Lists.newArrayList(serviceName));
+        if (!serviceNamesToBeWatched.contains(serviceName)) {
+          serviceNamesToBeWatched.add(serviceName);
+          this.discoveryClient.watchServicesChange(Lists.newArrayList(serviceName));
+        }
         Object instance =
             Proxy.newProxyInstance(
                 callerClass.getClassLoader(),
@@ -149,16 +160,18 @@ public class JdkServiceProxy implements ServiceProxy {
       connectionPool.acquireChannel(
           serviceEndpoint,
           (channel, throwable) -> {
-            if (throwable.isPresent()) {
-              throw throwable.get();
+            // check exception
+            if (!throwable.isPresent()) {
+              ConcurrentMap<String, AsyncResult<RpcResponse>> responseCallbackMap =
+                  channel.attr(ClientAttribute.RESPONSE_CALLBACK_MAP).get();
+              responseCallbackMap.computeIfAbsent(
+                  rpcRequest.getRequestId(), (key) -> responseAsyncResult);
+              channel
+                  .writeAndFlush(rpcRequest)
+                  .addListener(new channelReleaseListener(serviceEndpoint));
+            } else {
+              throwable.get().printStackTrace();
             }
-            ConcurrentMap<String, AsyncResult<RpcResponse>> responseCallbackMap =
-                channel.attr(ClientAttribute.RESPONSE_CALLBACK_MAP).get();
-            responseCallbackMap.computeIfAbsent(
-                rpcRequest.getRequestId(), (key) -> responseAsyncResult);
-            channel
-                .writeAndFlush(rpcRequest)
-                .addListener(new channelReleaseListener(serviceEndpoint));
           });
       responseAsyncResult.await();
       RpcResponse response = responseAsyncResult.getValue();
