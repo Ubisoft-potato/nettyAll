@@ -36,4 +36,7 @@ public interface RpcClientConnectionPool {
    */
   AsyncResult<Void> releaseChannel(
       ServiceEndpoint serviceEndpoint, Channel channel, AsyncCallback<Void> callback);
+
+  /** shutdown the connection pools */
+  void close();
 }

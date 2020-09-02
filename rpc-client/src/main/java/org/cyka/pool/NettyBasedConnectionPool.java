@@ -2,7 +2,10 @@ package org.cyka.pool;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.pool.*;
+import io.netty.channel.pool.AbstractChannelPoolMap;
+import io.netty.channel.pool.ChannelHealthChecker;
+import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.FixedChannelPool;
 import io.netty.util.concurrent.FutureListener;
 import lombok.extern.slf4j.Slf4j;
 import org.cyka.async.AsyncCallback;
@@ -19,7 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Slf4j
 public class NettyBasedConnectionPool implements RpcClientConnectionPool {
 
-  private final ChannelPoolMap<ServiceEndpoint, ChannelPool> poolMap;
+  private final AbstractChannelPoolMap<ServiceEndpoint, ChannelPool> poolMap;
 
   private final long DEFAULT_ALL_IDLE_TIME = 60L;
 
@@ -83,6 +86,11 @@ public class NettyBasedConnectionPool implements RpcClientConnectionPool {
     return result;
   }
 
+  @Override
+  public void close() {
+    poolMap.forEach(entry -> entry.getValue().close());
+  }
+
   private NettyBasedConnectionPool(Builder builder) {
     this(
         builder.b,
@@ -125,7 +133,8 @@ public class NettyBasedConnectionPool implements RpcClientConnectionPool {
             return new FixedChannelPool(
                 b.remoteAddress(
                     new InetSocketAddress(serviceEndpoint.getHost(), serviceEndpoint.getPort())),
-                new RpcChannelInitializer(channelIdleTime),
+                new RpcChannelInitializer(
+                    channelIdleTime > 0 ? channelIdleTime : DEFAULT_ALL_IDLE_TIME),
                 checker != null ? checker : ChannelHealthChecker.ACTIVE,
                 FixedChannelPool.AcquireTimeoutAction.NEW,
                 acquireTimeOutMills,
