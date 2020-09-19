@@ -16,7 +16,7 @@ public class RpcEncoder extends MessageToByteEncoder<Object> {
   protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
     if (clazz.isInstance(msg)) {
       byte[] sendData = serializer.serialize(msg);
-      out.writeInt(sendData.length); // 不定长数据包
+      out.writeInt(sendData.length); // write msg data length
       out.writeBytes(sendData);
     }
   }

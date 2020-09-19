@@ -22,7 +22,7 @@ public class RpcDecoder extends ByteToMessageDecoder {
     in.markReaderIndex();
     int dataLength = in.readInt();
     if (in.readableBytes() < dataLength) {
-      // RpcRequest 未被完全接收 重置已读下标
+      // data length is not enough to decode to RpcRequest object
       in.resetReaderIndex();
       return;
     }
