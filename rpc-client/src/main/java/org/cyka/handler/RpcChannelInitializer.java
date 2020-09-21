@@ -21,6 +21,7 @@ public class RpcChannelInitializer implements ChannelPoolHandler {
 
   private final RpcSerializer serializer = new KryoSerializer();
   private final long allIdleTime;
+  private final int WRITE_BUFFER_MAX_WATER_MARK = 10 * 1024 * 1024;
 
   @Override
   public void channelReleased(Channel channel) throws Exception {
@@ -36,6 +37,8 @@ public class RpcChannelInitializer implements ChannelPoolHandler {
   public void channelCreated(Channel channel) throws Exception {
     log.debug("new channel: {} created", channel);
     channel.attr(ClientAttribute.RESPONSE_CALLBACK_MAP).set(Maps.newConcurrentMap());
+    // set the max write data buffer to avoid netty send queue overflow
+    channel.config().setWriteBufferHighWaterMark(WRITE_BUFFER_MAX_WATER_MARK);
     channel
         .pipeline()
         .addLast(new IdleStateHandler(0, 0, allIdleTime, TimeUnit.SECONDS))

@@ -68,7 +68,7 @@ public class JdkServiceProxy implements ServiceProxy {
     if (Objects.nonNull(callerServiceClasses) && !callerServiceClasses.isEmpty()) {
       for (Class<?> callerClass : callerServiceClasses) {
         RpcCaller callerClassAnnotation = callerClass.getAnnotation(RpcCaller.class);
-        checkNotNull(callerClassAnnotation, "this is not a @RpcCaller marker interface");
+        checkNotNull(callerClassAnnotation, "this is not a @RpcCaller mark interface");
         String serviceName = callerClassAnnotation.serviceName();
         String version = callerClassAnnotation.version();
         if (!serviceNamesToBeWatched.contains(serviceName)) {

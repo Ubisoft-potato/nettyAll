@@ -25,6 +25,12 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    log.warn(
+        "channel: {} occur error: {} , with local address: {} , remote address: {}",
+        ctx.channel().id(),
+        cause.getMessage(),
+        ctx.channel().localAddress(),
+        ctx.channel().remoteAddress());
     super.exceptionCaught(ctx, cause);
   }
 
