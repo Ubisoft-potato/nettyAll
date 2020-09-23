@@ -24,15 +24,15 @@ import java.util.concurrent.ExecutionException;
 public class EtcdServiceRegistry implements ServiceRegistry {
 
   // ---------------------------constant-----------------------------------------
-  // 租期
+  // lease TTL
   private static final int LeaseTTL = 60;
 
   // ----------------------------etcd--------------------------------------------
-  // 租赁id
+  // lease id
   private Long leaseId;
   // etcd  kv client
   private final KV kv;
-  // lease: 租期，用于保持和etcd链接
+  // lease client -- need to get from etcd client
   private final Lease lease;
   private final Client client;
   private CloseableClient keepAliveClient;

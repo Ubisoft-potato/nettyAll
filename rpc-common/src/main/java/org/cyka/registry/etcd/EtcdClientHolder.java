@@ -5,9 +5,9 @@ import io.etcd.jetcd.Client;
 public class EtcdClientHolder {
   private static volatile Client client;
   // ---------------------------constant-----------------------------------------
-  // 跟路径
+  // registry root path in etcd
   private static final String ROOTPATH = "cykaRpc";
-  // 注册中心地址
+  // etcd server address
   private static final String DEFAULT_ADDRESS = "http://127.0.0.1:2379";
   private static final Object lock = new Object();
 
