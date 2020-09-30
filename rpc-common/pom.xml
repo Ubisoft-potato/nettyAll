@@ -52,7 +52,7 @@
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <version>4.2.3</version>
+            <version>${guice.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>guava</artifactId>

@@ -21,6 +21,7 @@
         <junit.version>4.12</junit.version>
         <lombok.version>1.18.12</lombok.version>
         <guava.version>29.0-jre</guava.version>
+        <guice.version>4.2.3</guice.version>
     </properties>
 
     <modules>
