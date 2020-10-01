@@ -38,3 +38,15 @@ rpc-client/rpc-client.iml
 rpc-common/rpc-common.iml
 rpc-server/rpc-server.iml
 rpc-test/rpc-test.iml
+rpc-client/target/classes/logback.xml
+rpc-client/target/generated-sources/
+rpc-client/target/generated-test-sources/
+rpc-common/target/classes/logback.xml
+rpc-common/target/generated-sources/
+rpc-common/target/generated-test-sources/
+rpc-server/target/classes/logback.xml
+rpc-server/target/generated-sources/
+rpc-server/target/generated-test-sources/
+rpc-test/target/classes/logback.xml
+rpc-test/target/generated-sources/
+rpc-test/target/generated-test-sources/
