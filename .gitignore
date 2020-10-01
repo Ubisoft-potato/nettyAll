@@ -21,3 +21,20 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+.idea/.gitignore
+.idea/codeStyles/
+.idea/compiler.xml
+.idea/encodings.xml
+.idea/google-java-format.xml
+.idea/jarRepositories.xml
+.idea/libraries/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+http-client/http-client.iml
+http-file-server/http-file-server.iml
+nettyAll.iml
+rpc-client/rpc-client.iml
+rpc-common/rpc-common.iml
+rpc-server/rpc-server.iml
+rpc-test/rpc-test.iml
