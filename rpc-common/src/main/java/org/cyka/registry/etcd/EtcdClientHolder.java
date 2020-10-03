@@ -8,7 +8,7 @@ public class EtcdClientHolder {
   // registry root path in etcd
   private static final String ROOTPATH = "cykaRpc";
   // etcd server address
-  private static final String DEFAULT_ADDRESS = "http://127.0.0.1:2379";
+  public static final String DEFAULT_ADDRESS = "http://127.0.0.1:2379";
   private static final Object lock = new Object();
 
   public static Client getOrCreateClient(String registryAddress) {

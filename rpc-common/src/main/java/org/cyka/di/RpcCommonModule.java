@@ -11,7 +11,7 @@ public class RpcCommonModule extends AbstractModule {
   protected void configure() {}
 
   @Provides
-  ServiceRegistry serviceRegistry(String serviceRegistry) {
+  ServiceRegistry serviceRegistry(String a) {
     return new EtcdServiceRegistry();
   }
 }
