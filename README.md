@@ -1,6 +1,6 @@
 
 
-![nettyAll](https://s1.ax1x.com/2020/10/17/0OmH8f.jpg)
+![nettyAll](https://raw.githubusercontent.com/Ubisoft-potato/nettyAll/master/pic/project_logo.png)
 
 ​																		![netty](https://img.shields.io/badge/netty-4.1.45.Final-brightgreen)![jetcd](https://img.shields.io/badge/jetcd-0.5.3-green)![Guice](https://img.shields.io/badge/Guice-4.2.3-yellow)
 
