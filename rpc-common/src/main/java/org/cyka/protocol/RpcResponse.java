@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class RpcResponse {
-  /** 响应ID */
+  /** the server response id */
   private String requestId;
-  /** 错误信息 */
+  /** error message */
   private String error;
-  /** 返回的结果 */
+  /** result */
   private Object result;
 }

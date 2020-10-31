@@ -8,17 +8,17 @@ import lombok.experimental.Accessors;
 @ToString
 @Accessors(chain = true)
 public class RpcRequest {
-  /** 请求对象的ID */
+  /** request object id */
   private String requestId;
-  /** 类名 */
+  /** rpc request class name */
   private String className;
-  /** 版本 */
+  /** service version */
   private String version;
-  /** 方法名 */
+  /** the method name to call */
   private String methodName;
-  /** 参数类型 */
+  /** parameter type */
   private Class<?>[] parameterTypes;
-  /** 入参 */
+  /** parameters */
   private Object[] parameters;
 
   /** heart beat package */
