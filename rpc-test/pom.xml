@@ -22,6 +22,17 @@
             <artifactId>rpc-server</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+        <!--jmg benchmark-->
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>${jmh.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>${jmh.version}</version>
+        </dependency>
     </dependencies>
 
 

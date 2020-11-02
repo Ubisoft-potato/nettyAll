@@ -47,7 +47,7 @@ public class RpcServer {
         serverPort);
   }
 
-  private void stop() {
+  public void stop() {
     log.info("Rpc Server Shutting Down........");
     beanRegistry
         .getAllRegisteredServiceName()

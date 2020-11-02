@@ -17,6 +17,7 @@ import java.util.Collection;
 public class NettyRpcClient {
   private final Bootstrap bootstrap = new Bootstrap();
   private final RpcClientConnectionPool connectionPool;
+  private final NioEventLoopGroup executors;
 
   // RpcCaller 标注类所在包名
   private final String basePackage;
@@ -44,15 +45,19 @@ public class NettyRpcClient {
     return serviceProxy.getInstance(clazz) != null;
   }
 
+  public void stop() {
+    log.info("shutting down the client...");
+    this.executors.shutdownGracefully();
+  }
+
   public NettyRpcClient(Builder builder) {
     this.basePackage = builder.basePackage;
     this.callerServiceClasses = builder.callerServiceClasses;
+    this.executors =
+        new NioEventLoopGroup(
+            builder.nThread != 0 ? builder.nThread : Runtime.getRuntime().availableProcessors());
     this.bootstrap
-        .group(
-            new NioEventLoopGroup(
-                builder.nThread != 0
-                    ? builder.nThread
-                    : Runtime.getRuntime().availableProcessors()))
+        .group(this.executors)
         .channel(NioSocketChannel.class)
         .option(ChannelOption.SO_KEEPALIVE, true);
     this.connectionPool =
@@ -75,13 +80,7 @@ public class NettyRpcClient {
         throw new IllegalArgumentException("proxy type unrecognized");
     }
     serviceProxy.servicePackageScan(this.basePackage).generateServiceProxy(callerServiceClasses);
-    Runtime.getRuntime()
-        .addShutdownHook(
-            new Thread(
-                () -> {
-                  log.info("shutting down the client...");
-                  this.connectionPool.close();
-                }));
+    Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
   }
 
   public static class Builder {
