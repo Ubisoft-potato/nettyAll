@@ -17,8 +17,9 @@ public class RpcCallTest {
     NettyRpcClient rpcClient = NettyRpcClient.builder().basePackage("org.cyka").nThread(8).build();
     HelloService helloService = rpcClient.getServiceCallerInstance(HelloService.class);
     ExecutorService service = Executors.newFixedThreadPool(8);
-    CountDownLatch latch = new CountDownLatch(10);
-    for (int i = 0; i < 10; i++) {
+    int callCount = 100000;
+    CountDownLatch latch = new CountDownLatch(callCount);
+    for (int i = 0; i < callCount; i++) {
       service.execute(
           () -> {
             log.info(helloService.sayHello("Rpc"));
