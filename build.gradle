@@ -1,0 +1,40 @@
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+
+    repositories {
+        mavenLocal()
+        maven {
+            url = uri('http://mirrors.cloud.tencent.com/nexus/repository/maven-public/')
+        }
+        maven {
+            url = uri('http://repo1.maven.org/maven2')
+        }
+    }
+
+    dependencies {
+        implementation(
+                'io.netty:netty-all:4.1.45.Final',
+                'ch.qos.logback:logback-classic:1.2.3',
+                'com.google.guava:guava:29.0-jre'
+        )
+        testImplementation 'junit:junit:4.12'
+        compileOnly 'org.projectlombok:lombok:1.18.16'
+        annotationProcessor 'org.projectlombok:lombok:1.18.16'
+        testCompileOnly "org.projectlombok:lombok:1.18.16"
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    }
+}
+
+
+subprojects {
+    group = 'org.cyka'
+    version = '1.0.0'
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}

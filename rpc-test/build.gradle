@@ -1,0 +1,20 @@
+plugins {
+    id "me.champeau.gradle.jmh" version "0.5.2"
+}
+
+dependencies {
+    implementation(
+            project(':rpc-client'),
+            project(':rpc-server'),
+            project(':rpc-common')
+    )
+
+    jmhImplementation(
+            'org.openjdk.jmh:jmh-core:1.25',
+            'org.openjdk.jmh:jmh-generator-annprocess:1.25'
+    )
+}
+
+jmh {
+    duplicateClassesStrategy = 'WARN'
+}

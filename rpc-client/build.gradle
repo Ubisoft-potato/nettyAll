@@ -1,0 +1,5 @@
+dependencies {
+    implementation project(':rpc-common')
+    implementation 'cglib:cglib:3.1'
+    implementation 'org.apache.commons:commons-pool2:2.8.1'
+}

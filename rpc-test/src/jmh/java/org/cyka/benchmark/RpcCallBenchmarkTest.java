@@ -1,4 +1,4 @@
-package org.cyka;
+package org.cyka.benchmark;
 
 import org.cyka.client.NettyRpcClient;
 import org.cyka.server.RpcServer;
