@@ -1,3 +1,21 @@
+buildscript {
+    ext {
+        nettyVersion = '4.1.45.Final'
+        logbackVersion = '1.2.3'
+        guavaVersion = '29.0-jre'
+        junitVersion = '4.12'
+        lombokVersion = '1.18.16'
+    }
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:6.1.0'
+    }
+}
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
@@ -7,25 +25,11 @@ allprojects {
 
     repositories {
         mavenLocal()
-        maven {
-            url = uri('http://mirrors.cloud.tencent.com/nexus/repository/maven-public/')
-        }
-        maven {
-            url = uri('http://repo1.maven.org/maven2')
-        }
-    }
-
-    dependencies {
-        implementation(
-                'io.netty:netty-all:4.1.45.Final',
-                'ch.qos.logback:logback-classic:1.2.3',
-                'com.google.guava:guava:29.0-jre'
-        )
-        testImplementation 'junit:junit:4.12'
-        compileOnly 'org.projectlombok:lombok:1.18.16'
-        annotationProcessor 'org.projectlombok:lombok:1.18.16'
-        testCompileOnly "org.projectlombok:lombok:1.18.16"
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+//        mavenCentral()
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
     }
 }
 
@@ -33,6 +37,18 @@ allprojects {
 subprojects {
     group = 'org.cyka'
     version = '1.0.0'
+
+    dependencies {
+        implementation(
+                "ch.qos.logback:logback-classic:${logbackVersion}",
+                "com.google.guava:guava:${guavaVersion}"
+        )
+        testImplementation "junit:junit:4.12"
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    }
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'

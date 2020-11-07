@@ -5,5 +5,4 @@ include(':rpc-client')
 include(':rpc-common')
 include(':rpc-test')
 include(':http-file-server')
-include 'jmh-benchmark'
 

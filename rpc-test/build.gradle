@@ -3,16 +3,16 @@ plugins {
 }
 
 dependencies {
-    implementation(
-            project(':rpc-client'),
-            project(':rpc-server'),
-            project(':rpc-common')
-    )
-
-    jmhImplementation(
-            'org.openjdk.jmh:jmh-core:1.25',
-            'org.openjdk.jmh:jmh-generator-annprocess:1.25'
-    )
+    implementation project(':rpc-client'), {
+        exclude module: 'cglib'
+        exclude module: 'logback-classic'
+        exclude module: 'guava'
+    }
+    implementation project(':rpc-server'), {
+        exclude module: 'logback-classic'
+        exclude module: 'guava'
+    }
+    compileOnly project(':rpc-common')
 }
 
 jmh {

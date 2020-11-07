@@ -20,7 +20,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.cyka" level="ERROR" additivity="false">
+    <logger name="org.cyka" level="INFO" additivity="false">
         <appender-ref ref="custom"/>
     </logger>
 
