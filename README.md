@@ -27,6 +27,6 @@
 - [x] `JDK Proxy` 
 - [ ]  `Cglib Proxy` 
 - [ ] 断路器(Circuit Breaker) 集成 : [Resilience4j](https://resilience4j.readme.io/)
-- [ ] 客户端池化：使用`NettyChannelPool`
+- [x] 客户端池化：使用`NettyChannelPool`
 - [ ] 客户端池化：使用`Apache Common Pool`
 
