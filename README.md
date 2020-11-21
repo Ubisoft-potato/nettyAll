@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="https://raw.githubusercontent.com/Ubisoft-potato/nettyAll/master/pic/project_logo.png" width=""/>
+	<img src="https://raw.githubusercontent.com/Ubisoft-potato/pic/master/project_logo.png" width=""/>
 </p>
 
 <p align="center">
