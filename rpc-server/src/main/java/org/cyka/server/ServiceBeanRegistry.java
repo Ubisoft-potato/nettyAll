@@ -25,10 +25,6 @@ public class ServiceBeanRegistry {
         .collect(Collectors.toList());
   }
 
-  private static String apply(Object o) {
-    return o.getClass().getAnnotation(RpcService.class).serviceName();
-  }
-
   public ServiceBeanRegistry(String basePackage) {
     Set<Class<?>> serviceBeanClasses =
         new AnnotationProcessor(basePackage).getAllAnnotatedClass(RpcService.class);
@@ -44,5 +40,9 @@ public class ServiceBeanRegistry {
           }
         });
     log.debug("generated service bean map: {}", serviceBeanMap);
+  }
+
+  private static String apply(Object obj) {
+    return obj.getClass().getAnnotation(RpcService.class).serviceName();
   }
 }
