@@ -14,10 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HttpServerInitializer extends ChannelInitializer<Channel> {
   private final int CHANNEL_MAX_BUFFER_SIZE = 10 * 1024 * 1024;
+  private final int CHANNEL_MIN_BUFFER_SIZE = 5 * 1024 * 1024;
 
   @Override
   protected void initChannel(Channel ch) throws Exception {
-    ch.config().setWriteBufferHighWaterMark(CHANNEL_MAX_BUFFER_SIZE);
+    ch.config()
+        .setWriteBufferHighWaterMark(CHANNEL_MAX_BUFFER_SIZE)
+        .setWriteBufferLowWaterMark(CHANNEL_MIN_BUFFER_SIZE);
     ch.pipeline()
         .addLast(new HttpServerCodec())
         .addLast(new ChunkedWriteHandler())
