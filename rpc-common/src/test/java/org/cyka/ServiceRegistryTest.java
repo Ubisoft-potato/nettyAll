@@ -7,7 +7,7 @@ import org.cyka.registry.ServiceRegistry;
 import org.cyka.registry.etcd.EtcdDiscoveryClient;
 import org.cyka.registry.etcd.EtcdServiceRegistry;
 import org.cyka.registry.lb.RoundRobinLoadBalanceStrategy;
-import org.cyka.registry.lb.RpcLoadBalance;
+import org.cyka.registry.lb.RpcLoadBalancer;
 import org.junit.Test;
 
 import javax.management.ServiceNotFoundException;
@@ -21,7 +21,7 @@ public class ServiceRegistryTest {
   private final String serviceName = "testService";
   private final ServiceRegistry serviceRegistry = new EtcdServiceRegistry();
   private final DiscoveryClient discoveryClient = new EtcdDiscoveryClient();
-  private final RpcLoadBalance loadBalance = new RpcLoadBalance(discoveryClient);
+  private final RpcLoadBalancer loadBalance = new RpcLoadBalancer(discoveryClient);
 
   @Test
   public void getLocalAddress() throws UnknownHostException {

@@ -47,4 +47,11 @@ public interface AsyncResult<T> {
    * @param exception exception of the failed task
    */
   void setException(Exception exception);
+
+  /**
+   * add callback func to this asyncResult
+   *
+   * @param callback - callback function
+   */
+  void addCallback(AsyncCallback<T> callback);
 }

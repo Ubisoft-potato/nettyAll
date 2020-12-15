@@ -8,7 +8,7 @@ import javax.management.ServiceNotFoundException;
 import java.util.Set;
 
 @Slf4j
-public class RpcLoadBalance {
+public class RpcLoadBalancer {
 
   private final DiscoveryClient discoveryClient;
 
@@ -26,7 +26,7 @@ public class RpcLoadBalance {
     return strategy.choose(serviceName, serviceEndpoints);
   }
 
-  public RpcLoadBalance(DiscoveryClient discoveryClient) {
+  public RpcLoadBalancer(DiscoveryClient discoveryClient) {
     this.discoveryClient = discoveryClient;
   }
 }

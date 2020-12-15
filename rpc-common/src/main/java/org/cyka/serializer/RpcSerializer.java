@@ -4,18 +4,18 @@ public interface RpcSerializer {
   /**
    * object ---> byte array
    *
-   * @param obj
-   * @param <T>
-   * @return
+   * @param obj  the object to be serialized
+   * @param <T> the object type
+   * @return byte array
    */
   <T> byte[] serialize(T obj);
 
   /**
    * byte array---> object
    *
-   * @param bytes
-   * @param <T>
-   * @return
+   * @param bytes byte array
+   * @param <T> the object type
+   * @return deserialized object
    */
   <T> Object deserialize(byte[] bytes, Class<T> clazz);
 }

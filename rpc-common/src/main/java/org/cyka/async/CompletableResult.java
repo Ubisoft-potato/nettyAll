@@ -1,7 +1,11 @@
 package org.cyka.async;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class CompletableResult<T> implements AsyncResult<T> {
   static final int RUNNING = 1;
@@ -9,7 +13,7 @@ public class CompletableResult<T> implements AsyncResult<T> {
   static final int COMPLETED = 3;
 
   final Object lock;
-  final Optional<AsyncCallback<T>> callback;
+  final List<AsyncCallback<T>> callbacks;
 
   volatile int state = RUNNING;
 
@@ -46,7 +50,9 @@ public class CompletableResult<T> implements AsyncResult<T> {
     this.value = value;
     this.state = COMPLETED;
     // invoke the call back method if AsyncCallback not empty
-    this.callback.ifPresent(ac -> ac.onComplete(value, Optional.empty()));
+    for (AsyncCallback<T> callback : this.callbacks) {
+      callback.onComplete(value, Optional.empty());
+    }
     synchronized (lock) {
       lock.notifyAll();
     }
@@ -56,14 +62,28 @@ public class CompletableResult<T> implements AsyncResult<T> {
     this.exception = exception;
     this.state = FAILED;
     // invoke the call back method if AsyncCallback not empty
-    this.callback.ifPresent(ac -> ac.onComplete(null, Optional.of(exception)));
+    for (AsyncCallback<T> callback : this.callbacks) {
+      callback.onComplete(null, Optional.of(exception));
+    }
     synchronized (lock) {
       lock.notifyAll();
     }
   }
 
+  @Override
+  public void addCallback(AsyncCallback<T> callback) {
+    // todo check value already set
+    if (Objects.nonNull(callback)) this.callbacks.add(callback);
+  }
+
+  public CompletableResult() {
+    this.lock = new Object();
+    this.callbacks = newArrayList();
+  }
+
   public CompletableResult(AsyncCallback<T> callback) {
     this.lock = new Object();
-    this.callback = Optional.ofNullable(callback);
+    this.callbacks = newArrayList();
+    if (callback != null) callbacks.add(callback);
   }
 }

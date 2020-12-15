@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cyka.pool.NettyBasedConnectionPool;
 import org.cyka.pool.RpcClientConnectionPool;
 import org.cyka.proxy.CglibServiceProxy;
-import org.cyka.proxy.JdkServiceProxy;
+import org.cyka.proxy.jdk.JdkServiceProxy;
 import org.cyka.proxy.ServiceProxy;
 
 import java.util.Collection;

@@ -1,8 +1,10 @@
 package org.cyka.handler;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.cyka.async.AsyncResult;
 import org.cyka.constant.ClientAttribute;
@@ -37,13 +39,15 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
   @Override
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
     if (evt instanceof IdleStateEvent) {
+      final Channel channel = ctx.channel();
       log.debug(
           "channel: {} --> remote : {}, is reach idleTime, send heart beat request",
-          ctx.channel().remoteAddress(),
-          ctx.channel().id());
-      ctx.writeAndFlush(RpcRequest.HEART_BEAT_REQUEST);
+          channel.remoteAddress(),
+          channel.id());
+      if (channel.isActive()) ctx.writeAndFlush(RpcRequest.HEART_BEAT_REQUEST);
+      else channel.close();
     }
-    ctx.fireUserEventTriggered(evt);
+    ReferenceCountUtil.release(evt);
   }
 
   @Override
