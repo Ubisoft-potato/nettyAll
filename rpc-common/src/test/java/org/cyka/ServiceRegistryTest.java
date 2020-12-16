@@ -8,6 +8,7 @@ import org.cyka.registry.etcd.EtcdDiscoveryClient;
 import org.cyka.registry.etcd.EtcdServiceRegistry;
 import org.cyka.registry.lb.RoundRobinLoadBalanceStrategy;
 import org.cyka.registry.lb.RpcLoadBalancer;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.management.ServiceNotFoundException;
@@ -16,6 +17,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
+@Ignore("local etcd service registry test")
 public class ServiceRegistryTest {
 
   private final String serviceName = "testService";

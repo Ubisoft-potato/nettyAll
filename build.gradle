@@ -48,6 +48,8 @@ subprojects {
         annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
         testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
         testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.9'
+        testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
     }
 
     tasks.withType(JavaCompile) {

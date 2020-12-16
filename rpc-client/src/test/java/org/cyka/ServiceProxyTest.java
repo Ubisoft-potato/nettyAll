@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cyka.annotation.RpcCaller;
 import org.cyka.async.AsyncResult;
 import org.cyka.client.NettyRpcClient;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
@@ -14,6 +15,7 @@ import java.lang.reflect.Type;
 public class ServiceProxyTest {
 
   @Test
+  @Ignore
   public void rpcCallTest() {
     NettyRpcClient rpcClient = NettyRpcClient.builder().basePackage("org.cyka").nThread(8).build();
     HelloService helloService = rpcClient.getServiceCallerInstance(HelloService.class);

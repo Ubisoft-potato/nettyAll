@@ -13,6 +13,7 @@ dependencies {
         exclude module: 'guava'
     }
     compileOnly project(':rpc-common')
+    testCompileOnly project(':rpc-common')
 }
 
 jmh {

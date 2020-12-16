@@ -8,6 +8,7 @@ import org.cyka.di.EtcdModule;
 import org.cyka.registry.DiscoveryClient;
 import org.cyka.registry.ServiceRegistry;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 @Slf4j
@@ -21,6 +22,7 @@ public class RpcModuleTest {
   }
 
   @Test
+  @Ignore("need etcd , only for local test")
   public void etcdRegistry() {
     ServiceRegistry serviceRegistry =
         injector.getInstance(Key.get(ServiceRegistry.class, EtcdModule.etcd.class));
